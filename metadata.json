@@ -1,0 +1,7 @@
+{
+  "name": "Entregas App - Condomínios",
+  "description": "Sistema completo para gestão de encomendas em condomínios com fluxos de portaria e administração.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
