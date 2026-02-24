@@ -105,10 +105,18 @@ const DeliveryList: React.FC<Props> = ({ deliveries, towers, apartments }) => {
                         {new Date(d.receivedAtPortaria).toLocaleString('pt-BR')}
                       </div>
                       {d.deliveredAt && (
-                        <div className="text-[10px] flex items-center text-emerald-600">
-                          <span className="w-16 font-bold uppercase">Entregue:</span>
-                          {new Date(d.deliveredAt).toLocaleString('pt-BR')}
-                        </div>
+                        <>
+                          <div className="text-[10px] flex items-center text-emerald-600">
+                            <span className="w-16 font-bold uppercase">Entregue:</span>
+                            {new Date(d.deliveredAt).toLocaleString('pt-BR')}
+                          </div>
+                          {d.deliveredToName && (
+                            <div className="text-[10px] flex items-center text-emerald-700 font-bold">
+                              <span className="w-16 font-bold uppercase">Retirado:</span>
+                              {d.deliveredToName}
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   </td>

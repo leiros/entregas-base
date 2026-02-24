@@ -12,6 +12,8 @@ const PortariaSection: React.FC<Props> = ({ db, user, onUpdateDeliveries }) => {
   const [trackingCode, setTrackingCode] = useState('');
   const [selectedTowerId, setSelectedTowerId] = useState('');
   const [selectedAptId, setSelectedAptId] = useState('');
+  const [deliveryToConfirm, setDeliveryToConfirm] = useState<string | null>(null);
+  const [recipientName, setRecipientName] = useState('');
 
   const isReadOnly = user.role === UserRole.SINDICO;
 
@@ -49,22 +51,64 @@ const PortariaSection: React.FC<Props> = ({ db, user, onUpdateDeliveries }) => {
     alert(`${toForward.length} encomendas encaminhadas para a Administração!`);
   };
 
-  const deliverDirectly = (id: string) => {
-    const recipient = prompt("Nome de quem está retirando:");
-    if (!recipient) return;
+  const handleConfirmDelivery = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deliveryToConfirm || !recipientName) return;
 
     const updated = db.deliveries.map((d: Delivery) => 
-      d.id === id 
-        ? { ...d, status: DeliveryStatus.ENTREGUE, deliveredAt: new Date().toISOString(), deliveredToName: recipient } 
+      d.id === deliveryToConfirm 
+        ? { ...d, status: DeliveryStatus.ENTREGUE, deliveredAt: new Date().toISOString(), deliveredToName: recipientName } 
         : d
     );
     onUpdateDeliveries(updated);
+    setDeliveryToConfirm(null);
+    setRecipientName('');
+    alert('Entrega finalizada com sucesso!');
   };
 
   const portariaPending = db.deliveries.filter((d: Delivery) => d.status === DeliveryStatus.PORTARIA);
 
   return (
     <div className="space-y-6">
+      {/* Delivery Confirmation Modal */}
+      {deliveryToConfirm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform transition-all animate-in fade-in zoom-in duration-200">
+            <h3 className="text-xl font-bold text-gray-800 mb-6">Confirmar Entrega</h3>
+            <form onSubmit={handleConfirmDelivery} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Nome de quem está retirando</label>
+                <input 
+                  autoFocus
+                  value={recipientName}
+                  onChange={e => setRecipientName(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium"
+                  placeholder="Nome completo do morador ou autorizado"
+                  required
+                />
+              </div>
+              <div className="flex gap-3 mt-8">
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setDeliveryToConfirm(null);
+                    setRecipientName('');
+                  }}
+                  className="flex-1 px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 font-bold text-gray-600 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg shadow-green-600/20 transition-all"
+                >
+                  Finalizar Entrega
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-blue-200">
         <div className="bg-blue-600 px-6 py-4 flex justify-between items-center">
           <h2 className="text-lg font-bold text-white flex items-center">
@@ -165,7 +209,7 @@ const PortariaSection: React.FC<Props> = ({ db, user, onUpdateDeliveries }) => {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-xs">
                       {!isReadOnly && (
                         <button 
-                          onClick={() => deliverDirectly(d.id)}
+                          onClick={() => setDeliveryToConfirm(d.id)}
                           className="text-indigo-600 hover:text-indigo-900 font-bold underline"
                         >
                           Entregar ao Morador
