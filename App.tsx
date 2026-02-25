@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { User, UserRole, Delivery, DeliveryStatus, Apartment, Tower, Section } from './types';
-import { getDB, saveDB, getDashboardStats } from './store';
+import { fetchDB, saveDeliveries, saveUsers, saveApartments, getDashboardStats, DB } from './store';
 import Sidebar from './components/Sidebar';
 import DashboardCards from './components/DashboardCards';
 import PortariaSection from './components/PortariaSection';
@@ -12,55 +12,105 @@ import DeliveryList from './components/DeliveryList';
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [db, setDb] = useState(getDB());
+  const [db, setDb] = useState<DB | null>(null);
   const [loginError, setLoginError] = useState('');
   const [activeSection, setActiveSection] = useState<Section>(Section.DASHBOARD);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Basic auto-login for demo if needed
+    const loadInitialData = async () => {
+      try {
+        const data = await fetchDB();
+        setDb(data);
+        
+        // Check session if needed, for now just load data
+        const savedUser = localStorage.getItem('entregas_app_user');
+        if (savedUser) {
+          setCurrentUser(JSON.parse(savedUser));
+        }
+      } catch (error) {
+        console.error('Error loading DB:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadInitialData();
   }, []);
 
-  const stats = useMemo(() => getDashboardStats(db.deliveries), [db.deliveries]);
+  const stats = useMemo(() => db ? getDashboardStats(db.deliveries) : null, [db?.deliveries]);
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const username = formData.get('username') as string;
     const password = formData.get('password') as string;
-    const user = db.users.find(u => u.username === username && u.active);
     
-    if (user && (user.password === password || !user.password)) {
-      setCurrentUser(user);
-      setLoginError('');
-      setActiveSection(Section.DASHBOARD);
-    } else if (user) {
-      setLoginError('Senha incorreta.');
-    } else {
-      setLoginError('Usuário não encontrado ou inativo.');
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setCurrentUser(result.user);
+        localStorage.setItem('entregas_app_user', JSON.stringify(result.user));
+        setLoginError('');
+        setActiveSection(Section.DASHBOARD);
+      } else {
+        setLoginError(result.message);
+      }
+    } catch (error) {
+      setLoginError('Erro ao conectar com o servidor.');
     }
   };
 
-  const handleLogout = () => setCurrentUser(null);
-
-  const updateDeliveries = (newDeliveries: Delivery[]) => {
-    const updatedDb = { ...db, deliveries: newDeliveries };
-    setDb(updatedDb);
-    saveDB(updatedDb);
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('entregas_app_user');
   };
 
-  const updateUsers = (newUsers: User[]) => {
-    const updatedDb = { ...db, users: newUsers };
-    setDb(updatedDb);
-    saveDB(updatedDb);
+  const updateDeliveries = async (newDeliveries: Delivery[]) => {
+    if (!db) return;
+    try {
+      await saveDeliveries(newDeliveries);
+      setDb({ ...db, deliveries: newDeliveries });
+    } catch (error) {
+      alert('Erro ao salvar encomendas no servidor.');
+    }
   };
 
-  const updateApartments = (newApts: Apartment[]) => {
-    const updatedDb = { ...db, apartments: newApts };
-    setDb(updatedDb);
-    saveDB(updatedDb);
+  const updateUsers = async (newUsers: User[]) => {
+    if (!db) return;
+    try {
+      await saveUsers(newUsers);
+      setDb({ ...db, users: newUsers });
+    } catch (error) {
+      alert('Erro ao salvar usuários no servidor.');
+    }
   };
 
-  if (!currentUser) {
+  const updateApartments = async (newApts: Apartment[]) => {
+    if (!db) return;
+    try {
+      await saveApartments(newApts);
+      setDb({ ...db, apartments: newApts });
+    } catch (error) {
+      alert('Erro ao salvar moradores no servidor.');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#0e2a47]">
+        <div className="text-white text-xl font-bold animate-pulse">Carregando sistema...</div>
+      </div>
+    );
+  }
+
+  if (!currentUser || !db) {
     return (
       <div className="flex items-center justify-center min-h-screen p-4 bg-[#0e2a47]">
         <div className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-md transform transition-all duration-300 hover:scale-[1.02] border-t-8 border-blue-600">

@@ -1,34 +1,44 @@
 
-import { Delivery, User, Apartment, Tower, DeliveryStatus, UserRole, DashboardStats } from './types';
-import { TOWERS, generateApartments, INITIAL_USERS } from './mockData';
+import { Delivery, User, Apartment, Tower, DeliveryStatus, DashboardStats } from './types';
 
-const DB_KEY = 'entregas_app_db';
-
-interface DB {
+export interface DB {
   users: User[];
   deliveries: Delivery[];
   towers: Tower[];
   apartments: Apartment[];
 }
 
-const initializeDB = (): DB => {
-  const saved = localStorage.getItem(DB_KEY);
-  if (saved) return JSON.parse(saved);
-
-  const initialDB: DB = {
-    users: INITIAL_USERS,
-    deliveries: [],
-    towers: TOWERS,
-    apartments: generateApartments()
-  };
-  localStorage.setItem(DB_KEY, JSON.stringify(initialDB));
-  return initialDB;
+export const fetchDB = async (): Promise<DB> => {
+  const response = await fetch('/api/db');
+  if (!response.ok) throw new Error('Failed to fetch DB');
+  return response.json();
 };
 
-export const getDB = () => initializeDB();
+export const saveDeliveries = async (deliveries: Delivery[]) => {
+  const response = await fetch('/api/deliveries', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(deliveries)
+  });
+  return response.json();
+};
 
-export const saveDB = (db: DB) => {
-  localStorage.setItem(DB_KEY, JSON.stringify(db));
+export const saveUsers = async (users: User[]) => {
+  const response = await fetch('/api/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(users)
+  });
+  return response.json();
+};
+
+export const saveApartments = async (apts: Apartment[]) => {
+  const response = await fetch('/api/apartments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(apts)
+  });
+  return response.json();
 };
 
 export const getDashboardStats = (deliveries: Delivery[]): DashboardStats => {
