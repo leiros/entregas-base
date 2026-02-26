@@ -1,7 +1,17 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { User, UserRole, Delivery, DeliveryStatus, Apartment, Tower, Section } from './types';
-import { fetchDB, saveDeliveries, saveUsers, saveApartments, getDashboardStats, DB } from './store';
+import { 
+  fetchDBFromFirestore, 
+  subscribeToDeliveries, 
+  saveDeliveryToFirestore, 
+  saveUserToFirestore, 
+  saveApartmentToFirestore, 
+  getDashboardStats, 
+  initializeFirestore,
+  DB 
+} from './store';
+import { TOWERS, generateApartments, INITIAL_USERS } from './mockData';
 import Sidebar from './components/Sidebar';
 import DashboardCards from './components/DashboardCards';
 import PortariaSection from './components/PortariaSection';
@@ -16,20 +26,40 @@ const App: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const [activeSection, setActiveSection] = useState<Section>(Section.DASHBOARD);
   const [loading, setLoading] = useState(true);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const data = await fetchDB();
+        setConnectionError(null);
+        // Inicializa com dados padrão se o Firestore estiver vazio
+        await initializeFirestore({
+          users: INITIAL_USERS,
+          deliveries: [],
+          towers: TOWERS,
+          apartments: generateApartments()
+        });
+
+        const data = await fetchDBFromFirestore();
         setDb(data);
         
-        // Check session if needed, for now just load data
+        // Inscrição para atualizações em tempo real das encomendas
+        const unsubscribe = subscribeToDeliveries((deliveries) => {
+          setDb(prev => prev ? { ...prev, deliveries } : null);
+        });
+
         const savedUser = localStorage.getItem('entregas_app_user');
         if (savedUser) {
-          setCurrentUser(JSON.parse(savedUser));
+          const parsedUser = JSON.parse(savedUser);
+          // Verifica se o usuário ainda existe e está ativo no DB carregado
+          const validUser = data.users.find(u => u.id === parsedUser.id && u.active);
+          if (validUser) setCurrentUser(validUser);
         }
-      } catch (error) {
-        console.error('Error loading DB:', error);
+
+        return () => unsubscribe();
+      } catch (error: any) {
+        console.error('Error loading Firestore:', error);
+        setConnectionError(error.message || 'Erro ao conectar ao Firebase. Verifique sua configuração e conexão.');
       } finally {
         setLoading(false);
       }
@@ -45,25 +75,19 @@ const App: React.FC = () => {
     const username = formData.get('username') as string;
     const password = formData.get('password') as string;
     
-    try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        setCurrentUser(result.user);
-        localStorage.setItem('entregas_app_user', JSON.stringify(result.user));
-        setLoginError('');
-        setActiveSection(Section.DASHBOARD);
-      } else {
-        setLoginError(result.message);
-      }
-    } catch (error) {
-      setLoginError('Erro ao conectar com o servidor.');
+    if (!db) return;
+
+    const user = db.users.find(u => u.username === username && u.active);
+    
+    if (user && (user.password === password || !user.password)) {
+      setCurrentUser(user);
+      localStorage.setItem('entregas_app_user', JSON.stringify(user));
+      setLoginError('');
+      setActiveSection(Section.DASHBOARD);
+    } else if (user) {
+      setLoginError('Senha incorreta.');
+    } else {
+      setLoginError('Usuário não encontrado ou inativo.');
     }
   };
 
@@ -75,37 +99,52 @@ const App: React.FC = () => {
   const updateDeliveries = async (newDeliveries: Delivery[]) => {
     if (!db) return;
     try {
-      await saveDeliveries(newDeliveries);
-      setDb({ ...db, deliveries: newDeliveries });
+      // No Firestore, salvamos o item alterado
+      // Como os componentes passam o array todo, pegamos o último ou o que mudou
+      // Para simplificar, salvamos todos os que estão no array (o Firestore lida com a idempotência)
+      for (const d of newDeliveries) {
+        await saveDeliveryToFirestore(d);
+      }
     } catch (error) {
-      alert('Erro ao salvar encomendas no servidor.');
+      alert('Erro ao salvar no Firebase.');
     }
   };
 
   const updateUsers = async (newUsers: User[]) => {
     if (!db) return;
     try {
-      await saveUsers(newUsers);
+      for (const u of newUsers) {
+        await saveUserToFirestore(u);
+      }
       setDb({ ...db, users: newUsers });
     } catch (error) {
-      alert('Erro ao salvar usuários no servidor.');
+      alert('Erro ao salvar usuário no Firebase.');
     }
   };
 
   const updateApartments = async (newApts: Apartment[]) => {
     if (!db) return;
     try {
-      await saveApartments(newApts);
+      for (const a of newApts) {
+        await saveApartmentToFirestore(a);
+      }
       setDb({ ...db, apartments: newApts });
     } catch (error) {
-      alert('Erro ao salvar moradores no servidor.');
+      alert('Erro ao salvar morador no Firebase.');
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0e2a47]">
-        <div className="text-white text-xl font-bold animate-pulse">Carregando sistema...</div>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#0e2a47] p-6 text-center">
+        <div className="text-white text-xl font-bold animate-pulse mb-4">Conectando ao Firebase...</div>
+        {connectionError && (
+          <div className="bg-red-500/20 border border-red-500 text-red-100 p-4 rounded-xl max-w-md">
+            <p className="font-bold mb-2">Erro de Conexão:</p>
+            <p className="text-sm opacity-90">{connectionError}</p>
+            <p className="text-[10px] mt-4 uppercase tracking-widest font-bold opacity-50">Verifique o Console do Navegador para mais detalhes</p>
+          </div>
+        )}
       </div>
     );
   }

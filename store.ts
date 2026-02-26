@@ -1,4 +1,13 @@
 
+import { 
+  collection, 
+  getDocs, 
+  setDoc, 
+  doc, 
+  updateDoc, 
+  onSnapshot
+} from "firebase/firestore";
+import { db_firestore } from "./firebaseConfig";
 import { Delivery, User, Apartment, Tower, DeliveryStatus, DashboardStats } from './types';
 
 export interface DB {
@@ -8,37 +17,83 @@ export interface DB {
   apartments: Apartment[];
 }
 
-export const fetchDB = async (): Promise<DB> => {
-  const response = await fetch('/api/db');
-  if (!response.ok) throw new Error('Failed to fetch DB');
-  return response.json();
+// Inicializa os dados básicos no Firestore se estiver vazio
+export const initializeFirestore = async (initialData: DB) => {
+  try {
+    console.log("Verificando conexão com Firestore...");
+    const towersCol = collection(db_firestore, "towers");
+    const snapshot = await getDocs(towersCol);
+    
+    if (snapshot.empty) {
+      console.log("Firestore vazio. Inicializando com dados padrão...");
+      
+      // Salva Torres
+      for (const tower of initialData.towers) {
+        await setDoc(doc(db_firestore, "towers", tower.id), tower);
+      }
+      
+      // Salva Usuários
+      for (const user of initialData.users) {
+        await setDoc(doc(db_firestore, "users", user.id), user);
+      }
+      
+      // Salva Apartamentos (Lote)
+      for (const apt of initialData.apartments) {
+        await setDoc(doc(db_firestore, "apartments", apt.id), apt);
+      }
+      console.log("Inicialização concluída com sucesso!");
+    } else {
+      console.log("Firestore já contém dados.");
+    }
+  } catch (error: any) {
+    console.error("Erro detalhado ao inicializar Firestore:", error);
+    if (error.code === 'permission-denied') {
+      console.error("ERRO DE PERMISSÃO: Verifique as regras do seu Firestore.");
+    }
+    throw error;
+  }
 };
 
-export const saveDeliveries = async (deliveries: Delivery[]) => {
-  const response = await fetch('/api/deliveries', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(deliveries)
-  });
-  return response.json();
+export const fetchDBFromFirestore = async (): Promise<DB> => {
+  try {
+    const towers = (await getDocs(collection(db_firestore, "towers"))).docs.map(d => d.data() as Tower);
+    const users = (await getDocs(collection(db_firestore, "users"))).docs.map(d => d.data() as User);
+    const apartments = (await getDocs(collection(db_firestore, "apartments"))).docs.map(d => d.data() as Apartment);
+    const deliveries = (await getDocs(collection(db_firestore, "deliveries"))).docs.map(d => d.data() as Delivery);
+    
+    return { towers, users, apartments, deliveries };
+  } catch (error) {
+    console.error("Erro ao buscar dados do Firestore:", error);
+    throw error;
+  }
 };
 
-export const saveUsers = async (users: User[]) => {
-  const response = await fetch('/api/users', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(users)
+// Escuta mudanças em tempo real nas encomendas
+export const subscribeToDeliveries = (callback: (deliveries: Delivery[]) => void) => {
+  return onSnapshot(collection(db_firestore, "deliveries"), (snapshot) => {
+    const deliveries = snapshot.docs.map(d => d.data() as Delivery);
+    callback(deliveries);
   });
-  return response.json();
 };
 
-export const saveApartments = async (apts: Apartment[]) => {
-  const response = await fetch('/api/apartments', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(apts)
-  });
-  return response.json();
+export const saveDeliveryToFirestore = async (delivery: Delivery) => {
+  await setDoc(doc(db_firestore, "deliveries", delivery.id), delivery);
+};
+
+export const updateDeliveryInFirestore = async (id: string, data: Partial<Delivery>) => {
+  await updateDoc(doc(db_firestore, "deliveries", id), data);
+};
+
+export const saveUserToFirestore = async (user: User) => {
+  await setDoc(doc(db_firestore, "users", user.id), user);
+};
+
+export const updateUserInFirestore = async (id: string, data: Partial<User>) => {
+  await updateDoc(doc(db_firestore, "users", id), data);
+};
+
+export const saveApartmentToFirestore = async (apt: Apartment) => {
+  await setDoc(doc(db_firestore, "apartments", apt.id), apt);
 };
 
 export const getDashboardStats = (deliveries: Delivery[]): DashboardStats => {
