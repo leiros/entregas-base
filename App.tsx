@@ -20,6 +20,8 @@ import UserManagement from './components/UserManagement';
 import ResidentManagement from './components/ResidentManagement';
 import DeliveryList from './components/DeliveryList';
 
+import { Menu, X, Calendar } from 'lucide-react';
+
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [db, setDb] = useState<DB | null>(null);
@@ -27,8 +29,15 @@ const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState<Section>(Section.DASHBOARD);
   const [loading, setLoading] = useState(true);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
+    // Auto-refresh a cada 1 hora
+    const refreshInterval = setInterval(() => {
+      console.log('Executando refresh automático de 1 hora...');
+      window.location.reload();
+    }, 60 * 60 * 1000);
+
     const loadInitialData = async () => {
       try {
         setConnectionError(null);
@@ -56,7 +65,10 @@ const App: React.FC = () => {
           if (validUser) setCurrentUser(validUser);
         }
 
-        return () => unsubscribe();
+        return () => {
+          unsubscribe();
+          clearInterval(refreshInterval);
+        };
       } catch (error: any) {
         console.error('Error loading Firestore:', error);
         setConnectionError(error.message || 'Erro ao conectar ao Firebase. Verifique sua configuração e conexão.');
@@ -152,8 +164,8 @@ const App: React.FC = () => {
   if (!currentUser || !db) {
     return (
       <div className="flex items-center justify-center min-h-screen p-4 bg-[#0e2a47]">
-        <div className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-md transform transition-all duration-300 hover:scale-[1.02] border-t-8 border-blue-600">
-          <div className="text-center mb-10">
+        <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-10 w-full max-w-md transform transition-all duration-300 hover:scale-[1.02] border-t-8 border-blue-600">
+          <div className="text-center mb-8 md:mb-10">
             <div className="inline-block bg-blue-600 p-4 rounded-2xl shadow-lg mb-4">
               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -202,6 +214,11 @@ const App: React.FC = () => {
       </div>
     );
   }
+
+  const handleSectionChange = (section: Section) => {
+    setActiveSection(section);
+    setIsSidebarOpen(false); // Fecha o menu ao trocar de seção no mobile
+  };
 
   const renderContent = () => {
     switch (activeSection) {
@@ -254,30 +271,60 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 overflow-x-hidden">
+      {/* Overlay para fechar menu mobile ao clicar fora */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       <Sidebar 
         user={currentUser} 
         activeSection={activeSection} 
-        onSectionChange={setActiveSection}
+        onSectionChange={handleSectionChange}
         onLogout={handleLogout}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
       
-      <main className="flex-1 p-8 overflow-y-auto">
-        <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="flex justify-between items-end">
-            <div>
-              <h2 className="text-3xl font-black text-gray-900 tracking-tight">
-                {activeSection.charAt(0) + activeSection.slice(1).toLowerCase()}
-              </h2>
-              <p className="text-gray-500 font-medium">Bem-vindo de volta, {currentUser.name.split(' ')[0]}</p>
+      <main className="flex-1 min-w-0 overflow-y-auto">
+        <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="lg:hidden p-2 bg-white rounded-xl shadow-sm border border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95 transition-all"
+                >
+                  <Menu className="w-6 h-6" />
+                </button>
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">
+                    {activeSection.charAt(0) + activeSection.slice(1).toLowerCase()}
+                  </h2>
+                  <p className="text-gray-500 font-medium text-sm md:text-base">Bem-vindo de volta, {currentUser.name.split(' ')[0]}</p>
+                </div>
+              </div>
             </div>
-            <div className="text-right hidden md:block">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Data de Hoje</p>
-              <p className="text-sm font-bold text-gray-700">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            
+            <div className="text-left md:text-right flex items-center md:block gap-2 bg-white md:bg-transparent p-3 md:p-0 rounded-2xl border md:border-0 border-gray-100 shadow-sm md:shadow-none">
+              <div className="md:hidden bg-blue-50 p-2 rounded-lg">
+                <Calendar className="w-4 h-4 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest hidden md:block">Data de Hoje</p>
+                <p className="text-xs md:text-sm font-bold text-gray-700">
+                  {new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                </p>
+              </div>
             </div>
           </div>
 
-          {renderContent()}
+          <div className="w-full">
+            {renderContent()}
+          </div>
         </div>
       </main>
     </div>

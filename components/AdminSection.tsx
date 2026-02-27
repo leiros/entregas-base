@@ -107,7 +107,7 @@ const AdminSection: React.FC<Props> = ({ db, user, onUpdateDeliveries }) => {
             const tower = db.towers.find((t: any) => t.id === d.towerId);
             const apt = db.apartments.find((a: any) => a.id === d.apartmentId);
             return (
-              <div key={d.id} className="border border-gray-100 p-4 rounded-lg bg-indigo-50 flex justify-between items-center transform transition-all hover:scale-[1.02]">
+              <div key={d.id} className="border border-gray-100 p-4 rounded-xl bg-indigo-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 transform transition-all hover:scale-[1.01]">
                 <div>
                   <div className="text-sm font-bold text-indigo-900">{d.trackingCode}</div>
                   <div className="text-xs text-indigo-700">{tower?.name} - Apt {apt?.number}</div>
@@ -116,7 +116,7 @@ const AdminSection: React.FC<Props> = ({ db, user, onUpdateDeliveries }) => {
                 {!isReadOnly && (
                   <button 
                     onClick={() => notifyResident(d)}
-                    className="bg-green-500 hover:bg-green-600 text-white text-xs font-bold py-2 px-3 rounded shadow transition-colors flex items-center"
+                    className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white text-xs font-bold py-2.5 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center"
                   >
                     <span className="mr-1">💬</span> Avisar Morador
                   </button>
@@ -140,17 +140,17 @@ const AdminSection: React.FC<Props> = ({ db, user, onUpdateDeliveries }) => {
             const tower = db.towers.find((t: any) => t.id === d.towerId);
             const apt = db.apartments.find((a: any) => a.id === d.apartmentId);
             return (
-              <div key={d.id} className="border border-gray-100 p-4 rounded-lg bg-green-50 flex justify-between items-center border-l-4 border-l-green-400">
+              <div key={d.id} className="border border-gray-100 p-4 rounded-xl bg-green-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-l-4 border-l-green-400">
                 <div>
                   <div className="text-sm font-bold text-green-900">{d.trackingCode}</div>
                   <div className="text-xs text-green-700">{tower?.name} - Apt {apt?.number}</div>
                   <div className="text-[10px] text-green-500 mt-1 font-bold">Notificado em: {new Date(d.notifiedAt!).toLocaleString('pt-BR')}</div>
                 </div>
                 {!isReadOnly && (
-                  <div className="flex flex-col space-y-2">
+                  <div className="w-full sm:w-auto flex flex-col space-y-2">
                     <button 
                       onClick={() => setDeliveryToConfirm(d.id)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded shadow transition-colors"
+                      className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-4 rounded-lg shadow-sm transition-colors"
                     >
                       Entregar Agora
                     </button>

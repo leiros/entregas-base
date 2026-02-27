@@ -38,21 +38,21 @@ const ResidentManagement: React.FC<Props> = ({ towers, apartments, onUpdateApart
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <h2 className="text-xl font-bold text-gray-800">Gestão de Moradores</h2>
-          <div className="flex flex-col md:flex-row gap-3">
-            <div className="relative">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1 sm:flex-none">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input 
                 type="text"
                 placeholder="Buscar morador ou apt..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none w-full md:w-64 transition-all"
+                className="pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none w-full sm:w-64 transition-all text-sm"
               />
             </div>
             <select 
               value={selectedTower}
               onChange={(e) => setSelectedTower(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white transition-all"
+              className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none bg-white transition-all text-sm"
             >
               <option value="">Todas as Torres</option>
               {towers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}

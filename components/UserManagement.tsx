@@ -53,34 +53,34 @@ const UserManagement: React.FC<Props> = ({ users, onUpdateUsers, currentUser }) 
         </h2>
       </div>
       
-      <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Create User Form */}
         {!isReadOnly && (
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 className="font-bold text-gray-700 mb-4 border-b pb-2">Novo Usuário</h3>
+          <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+            <h3 className="font-bold text-gray-700 mb-4 border-b border-gray-200 pb-2">Novo Usuário</h3>
             <form onSubmit={handleAddUser} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Nome Completo</label>
-                <input value={newUserName} onChange={e => setNewUserName(e.target.value)} className="w-full px-3 py-2 border rounded" required />
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Nome Completo</label>
+                <input value={newUserName} onChange={e => setNewUserName(e.target.value)} className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-4 focus:ring-red-500/10 focus:border-red-500 outline-none transition-all font-medium text-sm" required />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Login (Username)</label>
-                <input value={newUserLogin} onChange={e => setNewUserLogin(e.target.value)} className="w-full px-3 py-2 border rounded" required />
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Login (Username)</label>
+                <input value={newUserLogin} onChange={e => setNewUserLogin(e.target.value)} className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-4 focus:ring-red-500/10 focus:border-red-500 outline-none transition-all font-medium text-sm" required />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Senha Inicial</label>
-                <input value={newUserPassword} onChange={e => setNewUserPassword(e.target.value)} className="w-full px-3 py-2 border rounded" required />
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Senha Inicial</label>
+                <input value={newUserPassword} onChange={e => setNewUserPassword(e.target.value)} className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-4 focus:ring-red-500/10 focus:border-red-500 outline-none transition-all font-medium text-sm" required />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Cargo/Setor</label>
-                <select value={newUserRole} onChange={e => setNewUserRole(e.target.value as UserRole)} className="w-full px-3 py-2 border rounded bg-white">
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Cargo/Setor</label>
+                <select value={newUserRole} onChange={e => setNewUserRole(e.target.value as UserRole)} className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-4 focus:ring-red-500/10 focus:border-red-500 outline-none transition-all font-medium text-sm">
                   <option value={UserRole.PORTARIA}>Portaria</option>
                   <option value={UserRole.ADMIN}>Administração</option>
                   <option value={UserRole.MASTER}>Master Suporte</option>
                   <option value={UserRole.SINDICO}>Síndico (Leitura)</option>
                 </select>
               </div>
-              <button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded shadow">Criar Usuário</button>
+              <button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-red-600/20 active:scale-95 transition-all">Criar Usuário</button>
             </form>
           </div>
         )}

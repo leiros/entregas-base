@@ -125,37 +125,37 @@ const PortariaSection: React.FC<Props> = ({ db, user, onUpdateDeliveries }) => {
         </div>
         
         {!isReadOnly ? (
-          <form onSubmit={handleReceive} className="p-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <form onSubmit={handleReceive} className="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Cód. Rastreio / Barras</label>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Cód. Rastreio / Barras</label>
               <input 
                 value={trackingCode}
                 onChange={(e) => setTrackingCode(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-sm"
                 placeholder="Ex: BR123456789"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Torre</label>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Torre</label>
               <select 
                 value={selectedTowerId}
                 onChange={(e) => {
                   setSelectedTowerId(e.target.value);
                   setSelectedAptId('');
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-sm"
               >
                 <option value="">Selecione a Torre</option>
                 {db.towers.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Apartamento</label>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Apartamento</label>
               <select 
                 value={selectedAptId}
                 disabled={!selectedTowerId}
                 onChange={(e) => setSelectedAptId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 outline-none disabled:bg-gray-50"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-sm disabled:opacity-50"
               >
                 <option value="">Selecione o Apt</option>
                 {db.apartments.filter((a: any) => a.towerId === selectedTowerId).map((a: any) => (
@@ -165,7 +165,7 @@ const PortariaSection: React.FC<Props> = ({ db, user, onUpdateDeliveries }) => {
             </div>
             <button 
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all shadow-md"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl transition-all shadow-lg shadow-blue-600/20 active:scale-95"
             >
               Registrar Entrada
             </button>
