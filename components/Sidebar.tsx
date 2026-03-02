@@ -11,6 +11,7 @@ import {
   LogOut,
   X
 } from 'lucide-react';
+import { CONDO_CONFIG } from '../condoConfig';
 
 interface SidebarProps {
   user: User;
@@ -48,8 +49,8 @@ const Sidebar: React.FC<SidebarProps> = ({ user, activeSection, onSectionChange,
             <Package className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="font-bold text-lg leading-tight tracking-tight">Entregas App</h1>
-            <p className="text-blue-400 text-[10px] uppercase font-bold tracking-widest">Condomínios</p>
+            <h1 className="font-bold text-lg leading-tight tracking-tight">{CONDO_CONFIG.logoText}</h1>
+            <p className="text-blue-400 text-[10px] uppercase font-bold tracking-widest">{CONDO_CONFIG.shortName}</p>
           </div>
         </div>
         <button 

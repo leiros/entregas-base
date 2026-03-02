@@ -163,8 +163,8 @@ const App: React.FC = () => {
 
   if (!currentUser || !db) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-4 bg-[#0e2a47]">
-        <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-10 w-full max-w-md transform transition-all duration-300 hover:scale-[1.02] border-t-8 border-blue-600">
+      <div className="flex items-center justify-center min-h-screen w-full p-4 bg-gradient-to-b from-[#0e2a47] via-[#1b4d89] to-[#add8e6]">
+        <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-10 w-full max-w-md transform transition-all duration-300 hover:scale-[1.02] border-t-8 border-blue-600 z-10">
           <div className="text-center mb-8 md:mb-10">
             <div className="inline-block bg-blue-600 p-4 rounded-2xl shadow-lg mb-4">
               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -271,7 +271,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 overflow-x-hidden">
+    <div className="flex min-h-screen w-full bg-gray-50 overflow-x-hidden">
       {/* Overlay para fechar menu mobile ao clicar fora */}
       {isSidebarOpen && (
         <div 
@@ -289,8 +289,8 @@ const App: React.FC = () => {
         onClose={() => setIsSidebarOpen(false)}
       />
       
-      <main className="flex-1 min-w-0 overflow-y-auto">
-        <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <main className="flex-1 min-w-0 overflow-y-auto flex flex-col items-center">
+        <div className="w-full p-4 md:p-8 max-w-7xl space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
