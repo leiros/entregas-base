@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
         
         <div class="mt-8 text-center">
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Versão 0.2.5 Beta</p>
+            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Versão 2.5 Pro</p>
         </div>
     </div>
 </body>
